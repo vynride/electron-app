@@ -7,14 +7,7 @@ git push && git push --tags
 
 # Auto-update via GitHub Actions (Electron + Vite)
 
-This document shows a complete, copy-ready approach to add auto-updates to an Electron + Vite app using GitHub Actions, `electron-builder`, and `electron-updater`.
 
-It includes:
-
-- high-level requirements and secrets
-- code snippets for `main` / `preload` / `renderer`
-- a GitHub Actions workflow to build and publish releases
-- testing and platform caveats
 
 ---
 
