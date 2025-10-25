@@ -41,6 +41,7 @@ jobs:
         run: npm run build:win
 
       - name: release
+        if: matrix.os == 'windows-latest'
         uses: softprops/action-gh-release@v1
         # This step will now run on every push to main or a tag
         with:

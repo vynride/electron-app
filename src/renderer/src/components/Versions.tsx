@@ -138,7 +138,8 @@ function Versions(): React.JSX.Element {
         <button onClick={startCheck} disabled={checking}>
           {checking ? 'Checking...' : 'Check for updates'}
         </button>
-        <button className="show-app-version"
+        <button
+          className="show-app-version"
           onClick={() => {
             // debug helper: show app version by calling the same IPC
             try {
@@ -151,7 +152,9 @@ function Versions(): React.JSX.Element {
             // @ts-ignore
             if ((window as any).electron?.ipcRenderer?.invoke) {
               // @ts-ignore
-              (window as any).electron.ipcRenderer.invoke('get-app-version').then((v: string) => alert(`app version: ${v}`))
+              ;(window as any).electron.ipcRenderer
+                .invoke('get-app-version')
+                .then((v: string) => alert(`app version: ${v}`))
             } else {
               alert('app version: not available')
             }
