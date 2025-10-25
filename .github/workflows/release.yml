@@ -1,50 +1,60 @@
 name: Build/release Electron app
 
 on:
-  push:
-    tags:
-      - v*.*.*
-    branches:
-          - main
+push:
+tags:
+- v*..
+branches:
+- main
+
+Add this permissions block
+
+permissions:
+contents: write
 
 jobs:
-  release:
-    runs-on: ${{ matrix.os }}
+release:
+runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+strategy:
+  matrix:
+    os: [ubuntu-latest, windows-latest]
 
-    steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
+steps:
+  - name: Check out Git repository
+    uses: actions/checkout@v4 # Use v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22
+  - name: Install Node.js
+    uses: actions/setup-node@v4 # Use v4
+    with:
+      node-version: 22
 
-      - name: Install Dependencies
-        run: npm install
+  - name: Install Dependencies
+    run: npm install
 
-      - name: build-linux
-        if: matrix.os == 'ubuntu-latest'
-        run: npm run build:linux
+  - name: build-linux
+    if: matrix.os == 'ubuntu-latest'
+    run: npm run build:linux
 
-      - name: build-win
-        if: matrix.os == 'windows-latest'
-        run: npm run build:win
+  - name: build-win
+    if: matrix.os == 'windows-latest'
+    run: npm run build:win
 
-      - name: release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          files: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.yml
-            dist/*.blockmap
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+  - name: release
+    uses: softprops/action-gh-release@v1
+    # This step will now run on every push to main or a tag
+    with:
+      draft: true
+      # This tells the action not to fail if it can't find
+      # e.g. .exe files on Linux, or .AppImage on Windows.
+      fail_on_unmatched_files: false
+      files: |
+        dist/*.exe
+        dist/*.zip
+        dist/*.AppImage
+        dist/*.deb
+        dist/*.yml
+        dist/*.blockmap
+    env:
+      # Use the built-in GITHUB_TOKEN
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
