@@ -13,11 +13,31 @@ function Versions(): React.JSX.Element {
 
   useEffect(() => {
     // get installed app version
-    try {
-      window.api.getAppVersion().then((v) => setAppVersion(v))
-    } catch {
-      // ignore in dev
+    const fetchVersion = async () => {
+      // Try the exposed API first, then fall back to invoking ipc directly if available.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          if (window.api && typeof window.api.getAppVersion === 'function') {
+            const v = await window.api.getAppVersion()
+            if (v) return setAppVersion(v)
+          }
+
+          // Fallback: some preload setups expose electron.ipcRenderer
+          // @ts-ignore - runtime check
+          if ((window as any).electron?.ipcRenderer?.invoke) {
+            // @ts-ignore
+            const v = await (window as any).electron.ipcRenderer.invoke('get-app-version')
+            if (v) return setAppVersion(v)
+          }
+        } catch (err) {
+          // wait and retry
+        }
+        await new Promise((r) => setTimeout(r, 200))
+      }
+      // if we couldn't get a version, leave as null
     }
+
+    void fetchVersion()
 
     try {
       window.api.updates.on('checking-for-update', () => {
@@ -117,6 +137,27 @@ function Versions(): React.JSX.Element {
       <div className="update-check">
         <button onClick={startCheck} disabled={checking}>
           {checking ? 'Checking...' : 'Check for updates'}
+        </button>
+        <button className="show-app-version"
+          onClick={() => {
+            // debug helper: show app version by calling the same IPC
+            try {
+              if (window.api && typeof window.api.getAppVersion === 'function') {
+                window.api.getAppVersion().then((v) => alert(`app version: ${v}`))
+                return
+              }
+            } catch {}
+            // fallback
+            // @ts-ignore
+            if ((window as any).electron?.ipcRenderer?.invoke) {
+              // @ts-ignore
+              (window as any).electron.ipcRenderer.invoke('get-app-version').then((v: string) => alert(`app version: ${v}`))
+            } else {
+              alert('app version: not available')
+            }
+          }}
+        >
+          Show app version
         </button>
         {notAvailableMessage && <span className="update-msg">{notAvailableMessage}</span>}
       </div>

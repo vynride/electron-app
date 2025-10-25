@@ -1,3 +1,10 @@
+# example: bump to 1.0.3
+npm --no-git-tag-version version 1.0.3
+git add package.json
+git commit -m "chore(release): v1.0.3"
+git tag v1.0.3
+git push && git push --tags
+
 # Auto-update via GitHub Actions (Electron + Vite)
 
 This document shows a complete, copy-ready approach to add auto-updates to an Electron + Vite app using GitHub Actions, `electron-builder`, and `electron-updater`.
