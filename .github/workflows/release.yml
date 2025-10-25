@@ -6,6 +6,7 @@ on:
       - 'v*.*.*'
     branches:
       - main
+      - master
 
 # Add this permissions block
 permissions:
@@ -31,9 +32,9 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      - name: build-linux
-        if: matrix.os == 'ubuntu-latest'
-        run: npm run build:linux
+      # - name: build-linux
+      #   if: matrix.os == 'ubuntu-latest'
+      #   run: npm run build:linux
 
       - name: build-win
         if: matrix.os == 'windows-latest'
