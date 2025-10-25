@@ -5,17 +5,24 @@
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://electron-vite.org",
-
   "build": {
-  "appId": "com.yourcompany.yourapp",
-  "productName": "YourApp",
-  "files": ["build/**/*","dist/**/*","src/**/*","package.json"],
-  "directories": { "buildResources": "resources" },
-  "publish": [
-    { "provider": "github", "owner": "SaptanshuWanjari", "repo": "" }
-  ]
-},
-
+    "appId": "com.yourcompany.yourapp",
+    "productName": "practice",
+    "files": [
+      "out/**"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "resources"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "vynride",
+        "repo": ""
+      }
+    ]
+  },
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
