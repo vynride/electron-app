@@ -9,7 +9,7 @@ function App(): React.JSX.Element {
       <img alt="logo" className="logo" src={electronLogo} />
       <div className="creator">Release Tester</div>
       <div className="text">
-        Build an Electron app with <span className="react">React</span>
+        Triggering a release with <span className="react">Github Actions</span>
         &nbsp;and <span className="ts">TypeScript</span>
       </div>
       <p className="tip">
