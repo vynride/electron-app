@@ -1,7 +1,7 @@
 # example: bump to 1.0.3
-npm --no-git-tag-version version 1.0.3
+npm --no-git-tag-version version 1.0.5
 git add package.json
-git commit -m "chore(release): v1.0.3"
+git commit -m "chore(release): v1.0.5"
 git tag v1.0.3
 git push && git push --tags
 
