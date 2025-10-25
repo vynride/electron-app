@@ -14,14 +14,7 @@
     "directories": {
       "output": "dist",
       "buildResources": "resources"
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "vynride",
-        "repo": "electron-app"
-      }
-    ]
+    }
   },
   "scripts": {
     "format": "prettier --write .",
