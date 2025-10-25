@@ -2,14 +2,16 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { autoUpdater } from 'electron'
+import { autoUpdater } from 'electron-updater'
 
-(autoUpdater as any).autoDownload = false;
-(autoUpdater as any).autoInstallOnAppQuit = true
+let mainWindow: BrowserWindow | null = null
+
+// Configure updater: let the UI control downloading
+autoUpdater.autoDownload = false
 
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -22,7 +24,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -43,8 +45,6 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-
-  autoUpdater.checkForUpdates();
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -57,6 +57,59 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  // Wire auto-updater events to renderer
+  autoUpdater.on('checking-for-update', () => {
+    mainWindow?.webContents.send('checking-for-update')
+  })
+
+  autoUpdater.on('update-available', (info) => {
+    mainWindow?.webContents.send('update-available', info)
+  })
+
+  autoUpdater.on('update-not-available', (info) => {
+    mainWindow?.webContents.send('update-not-available', info)
+  })
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    mainWindow?.webContents.send('download-progress', progressObj)
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    mainWindow?.webContents.send('update-downloaded', info)
+  })
+
+  autoUpdater.on('error', (err) => {
+    mainWindow?.webContents.send('update-error', err == null ? 'unknown' : err.message)
+  })
+
+  // IPC handlers for renderer control and info
+  ipcMain.handle('get-app-version', () => app.getVersion())
+
+  ipcMain.handle('update-check', async () => {
+    try {
+      return await autoUpdater.checkForUpdates()
+    } catch (error) {
+      return { error: (error as Error).message }
+    }
+  })
+
+  ipcMain.handle('update-download', async () => {
+    try {
+      return await autoUpdater.downloadUpdate()
+    } catch (error) {
+      return { error: (error as Error).message }
+    }
+  })
+
+  ipcMain.handle('update-install', () => {
+    try {
+      autoUpdater.quitAndInstall()
+      return { ok: true }
+    } catch (error) {
+      return { error: (error as Error).message }
+    }
+  })
 
   createWindow()
 

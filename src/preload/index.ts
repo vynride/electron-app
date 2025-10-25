@@ -1,8 +1,44 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 // Custom APIs for renderer
-const api = {}
+const api = {
+  updates: {
+    on: (channel: string, listener: (data: unknown) => void) => {
+      const validChannels = [
+        'checking-for-update',
+        'update-available',
+        'update-not-available',
+        'download-progress',
+        'update-downloaded',
+        'update-error'
+      ]
+      if (validChannels.includes(channel)) {
+        ipcRenderer.on(channel, (_event, data) => listener(data))
+      }
+    },
+    once: (channel: string, listener: (data: unknown) => void) => {
+      const validChannels = [
+        'checking-for-update',
+        'update-available',
+        'update-not-available',
+        'download-progress',
+        'update-downloaded',
+        'update-error'
+      ]
+      if (validChannels.includes(channel)) {
+        ipcRenderer.once(channel, (_event, data) => listener(data))
+      }
+    },
+    removeAllListeners: (channel: string) => {
+      ipcRenderer.removeAllListeners(channel)
+    }
+  },
+  getAppVersion: (): Promise<string> => ipcRenderer.invoke('get-app-version'),
+  checkForUpdates: () => ipcRenderer.invoke('update-check'),
+  downloadUpdate: () => ipcRenderer.invoke('update-download'),
+  installUpdate: () => ipcRenderer.invoke('update-install')
+}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
