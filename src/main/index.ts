@@ -88,6 +88,23 @@ app.whenReady().then(() => {
 
   ipcMain.handle('update-check', async () => {
     try {
+      // In development (not packaged) electron-updater often won't contact
+      // providers the same way as a packaged app. To make the UI testable in
+      // dev, simulate updater events when app isn't packaged.
+      if (!app.isPackaged) {
+        // notify renderer we're checking
+        mainWindow?.webContents.send('checking-for-update')
+        // simulate a short delay then notify that an update is available
+        setTimeout(() => {
+          mainWindow?.webContents.send('update-available', {
+            version: app.getVersion() + '-dev',
+            releaseName: `dev-simulated-${app.getVersion()}`
+          })
+        }, 800)
+
+        return { simulated: true }
+      }
+
       return await autoUpdater.checkForUpdates()
     } catch (error) {
       return { error: (error as Error).message }
@@ -96,6 +113,24 @@ app.whenReady().then(() => {
 
   ipcMain.handle('update-download', async () => {
     try {
+      if (!app.isPackaged) {
+        // Simulate download progress in dev
+        let pct = 0
+        const t = setInterval(() => {
+          pct += Math.floor(Math.random() * 20) + 5
+          if (pct >= 100) pct = 100
+          mainWindow?.webContents.send('download-progress', { percent: pct })
+          if (pct >= 100) {
+            clearInterval(t)
+            mainWindow?.webContents.send('update-downloaded', {
+              version: app.getVersion() + '-dev'
+            })
+          }
+        }, 300)
+
+        return { simulated: true }
+      }
+
       return await autoUpdater.downloadUpdate()
     } catch (error) {
       return { error: (error as Error).message }
