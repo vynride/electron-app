@@ -18,7 +18,8 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        # os: [ubuntu-latest, windows-latest]
+        os: [windows-latest]
 
     steps:
       - name: Check out Git repository
@@ -51,8 +52,8 @@ jobs:
           files: |
             dist/*.exe
             dist/*.zip
-            dist/*.AppImage
-            dist/*.deb
+            # dist/*.AppImage
+            # dist/*.deb
             dist/*.yml
             dist/*.blockmap
         env:
