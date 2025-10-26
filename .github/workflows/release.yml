@@ -64,32 +64,55 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-      #
+
+      # Compute release inputs in a shell step (industry standard).
+      # We set outputs: tag_name, release_name, prerelease
+      # - For a tag push (refs/tags/v1.2.3): tag_name = "v1.2.3", release_name = "v1.2.3", prerelease = false
+      # - For a branch push (refs/heads/main): tag_name = "draft-main-<sha>", release_name = "Draft: main (<short-sha>)", prerelease = true
+      - name: Set release variables
+        id: vars
+        run: |
+          # detect tag vs branch
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            tag_name="${GITHUB_REF#refs/tags/}"
+            release_name="$tag_name"
+            prerelease="false"
+          else
+            branch_name="${GITHUB_REF#refs/heads/}"
+            short_sha="${GITHUB_SHA:0:7}"
+            tag_name="draft-${branch_name}-${GITHUB_SHA}"
+            release_name="Draft: ${branch_name} (${short_sha})"
+            prerelease="true"
+          fi
+
+          # Export outputs for later steps
+          echo "tag_name=${tag_name}" >> "$GITHUB_OUTPUT"
+          echo "release_name=${release_name}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=${prerelease}" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
-        with:          
+        with:
+          # --- This is the required logic ---
+          
           # 1. For a tag push (e.g., v1.0.0), use the tag name: "v1.0.0"
           # 2. For a branch push, use the branch name + short SHA: "Draft: main (abc1234)"
-          name: >-
-            ${{ startsWith(github.ref, 'refs/tags/')
-                ? github.ref_name
-                : format('Draft: {0} ({1})', github.ref_name, github.sha) }}
+          name: ${{ steps.vars.outputs.release_name }}
           
           # 1. For a tag push, use the tag name: "v1.0.0"
           # 2. For a branch push, create a unique tag: "draft-main-abc1234..."
           #    (This prefix avoids the 40-hex-char error)
-          tag_name: >-
-            ${{ startsWith(github.ref, 'refs/tags/')
-                ? github.ref_name
-                : format('draft-{0}-{1}', github.ref_name, github.sha) }}
-                    
+          tag_name: ${{ steps.vars.outputs.tag_name }}
+          
+          # ---
+          
           # Always create a draft as you wanted
-          draft: true
+          draft: false
           
           # Mark branch pushes (non-tags) as a pre-release
-          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          prerelease: ${{ steps.vars.outputs.prerelease }}
           
           files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
