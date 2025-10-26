@@ -79,8 +79,10 @@ jobs:
             prerelease="false"
           else
             branch_name="${GITHUB_REF#refs/heads/}"
-            short_sha="${GITHUB_SHA:0:7}"
-            tag_name="draft-${branch_name}-${GITHUB_SHA}"
+            # sanitize branch name: replace slashes with dashes
+            branch_name="${branch_name//\//-}"
+            short_sha="${GITHUB_SHA:0:8}"    # use a short SHA (8 chars)
+            tag_name="draft-${branch_name}-${short_sha}"
             release_name="Draft: ${branch_name} (${short_sha})"
             prerelease="true"
           fi
