@@ -64,23 +64,25 @@ jobs:
         with:
           path: dist
           merge-multiple: true
-
+      #
       - name: Create Release
         uses: softprops/action-gh-release@v1
-        with:
-          # --- This is the required logic ---
-          
+        with:          
           # 1. For a tag push (e.g., v1.0.0), use the tag name: "v1.0.0"
           # 2. For a branch push, use the branch name + short SHA: "Draft: main (abc1234)"
-          name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('Draft: {0} ({1})', github.ref_name, github.sha) }}
+          name: >-
+            ${{ startsWith(github.ref, 'refs/tags/')
+                ? github.ref_name
+                : format('Draft: {0} ({1})', github.ref_name, github.sha) }}
           
           # 1. For a tag push, use the tag name: "v1.0.0"
           # 2. For a branch push, create a unique tag: "draft-main-abc1234..."
           #    (This prefix avoids the 40-hex-char error)
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('draft-{0}-{1}', github.ref_name, github.sha) }}
-          
-          # ---
-          
+          tag_name: >-
+            ${{ startsWith(github.ref, 'refs/tags/')
+                ? github.ref_name
+                : format('draft-{0}-{1}', github.ref_name, github.sha) }}
+                    
           # Always create a draft as you wanted
           draft: true
           
@@ -90,3 +92,4 @@ jobs:
           files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
