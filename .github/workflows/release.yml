@@ -46,6 +46,9 @@ jobs:
         # This step will now run on every push to main or a tag
         with:
           draft: true
+          tag_name: ${{ github.sha }}
+          name: Draft Release (Commit ${{ github.sha }})
+          prerelease: true
           # This tells the action not to fail if it can't find
           # e.g. .exe files on Linux, or .AppImage on Windows.
           fail_on_unmatched_files: false
