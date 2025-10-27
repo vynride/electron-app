@@ -11,7 +11,7 @@ git push && git push --tags
 
 ---
 
-## What I'll do next
+## What I'll do next 
 
 - Explain required high-level changes and secrets.
 - Provide exact files/snippets to add or edit:
