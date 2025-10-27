@@ -6,6 +6,7 @@ import { autoUpdater } from 'electron-updater'
 
 let mainWindow: BrowserWindow | null = null
 
+
 // Configure updater: let the UI control downloading
 autoUpdater.autoDownload = false
 
