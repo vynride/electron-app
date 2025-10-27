@@ -9,6 +9,11 @@ let mainWindow: BrowserWindow | null = null
 // Configure updater: let the UI control downloading
 autoUpdater.autoDownload = false
 
+// Enable logging for debugging
+autoUpdater.logger = console
+console.log('App version:', app.getVersion())
+console.log('App isPackaged:', app.isPackaged)
+
 function createWindow(): void {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -60,26 +65,32 @@ app.whenReady().then(() => {
 
   // Wire auto-updater events to renderer
   autoUpdater.on('checking-for-update', () => {
+    console.log('[AutoUpdater] Checking for update...')
     mainWindow?.webContents.send('checking-for-update')
   })
 
   autoUpdater.on('update-available', (info) => {
+    console.log('[AutoUpdater] Update available:', info)
     mainWindow?.webContents.send('update-available', info)
   })
 
   autoUpdater.on('update-not-available', (info) => {
+    console.log('[AutoUpdater] Update not available:', info)
     mainWindow?.webContents.send('update-not-available', info)
   })
 
   autoUpdater.on('download-progress', (progressObj) => {
+    console.log('[AutoUpdater] Download progress:', progressObj.percent)
     mainWindow?.webContents.send('download-progress', progressObj)
   })
 
   autoUpdater.on('update-downloaded', (info) => {
+    console.log('[AutoUpdater] Update downloaded:', info)
     mainWindow?.webContents.send('update-downloaded', info)
   })
 
   autoUpdater.on('error', (err) => {
+    console.error('[AutoUpdater] Error:', err)
     mainWindow?.webContents.send('update-error', err == null ? 'unknown' : err.message)
   })
 
@@ -88,10 +99,14 @@ app.whenReady().then(() => {
 
   ipcMain.handle('update-check', async () => {
     try {
+      console.log('[IPC] update-check called')
+      console.log('[IPC] app.isPackaged:', app.isPackaged)
+      
       // In development (not packaged) electron-updater often won't contact
       // providers the same way as a packaged app. To make the UI testable in
       // dev, simulate updater events when app isn't packaged.
       if (!app.isPackaged) {
+        console.log('[IPC] Simulating update check in dev mode')
         // notify renderer we're checking
         mainWindow?.webContents.send('checking-for-update')
         // simulate a short delay then notify that an update is available
@@ -105,8 +120,12 @@ app.whenReady().then(() => {
         return { simulated: true }
       }
 
-      return await autoUpdater.checkForUpdates()
+      console.log('[IPC] Checking for updates on GitHub...')
+      const result = await autoUpdater.checkForUpdates()
+      console.log('[IPC] Check result:', result)
+      return result
     } catch (error) {
+      console.error('[IPC] Error checking for updates:', error)
       return { error: (error as Error).message }
     }
   })
